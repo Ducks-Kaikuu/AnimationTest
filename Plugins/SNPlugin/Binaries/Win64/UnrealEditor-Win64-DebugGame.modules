@@ -1,0 +1,8 @@
+{
+	"BuildId": "33043543",
+	"Modules": 
+	{
+		"SNPlugin": "UnrealEditor-SNPlugin-Win64-DebugGame.dll",
+		"SNPluginEditor": "UnrealEditor-SNPluginEditor-Win64-DebugGame.dll"
+	}
+}
