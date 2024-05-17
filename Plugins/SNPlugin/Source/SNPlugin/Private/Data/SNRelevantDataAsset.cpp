@@ -2,9 +2,80 @@
 
 #include "Data/SNRelevantDataAsset.h"
 
+#include <ios>
+#include <fstream>
+
 #include "SNDef.h"
 #include "Data/SNRelevantAssetDataTable.h"
 #include "Utility/SNUtility.h"
+
+class HeaderOutput
+{
+public:
+	 HeaderOutput():OutputStream(nullptr){}
+	~HeaderOutput(){
+		
+		 if(OutputStream != nullptr){
+			
+			 delete OutputStream;
+			
+		 	OutputStream = nullptr;
+		 }
+	}
+	
+	bool Setup(const FName& FilePath, const FString& AssetName){
+		
+		FString Path(FilePath.ToString());
+		
+		if(Path[Path.Len()-1] != TEXT('\\')){
+			Path += TEXT("/");
+		}
+		
+		int PreFixPos = AssetName.Find("_");
+		
+		FString Temp(AssetName);
+		
+		if(PreFixPos >= 0){
+			Temp = Temp.RightChop(PreFixPos+1);
+		}
+		
+		EnumName = *FString(TEXT("E")+ Temp);
+		
+		Temp += TEXT(".h");
+		
+		FString Filename = *(Path + Temp);
+		
+		OutputStream = new std::wfstream(*Filename, std::ios::out);
+		
+		if((OutputStream == nullptr) || (OutputStream->fail())){
+			return false;
+		}
+		
+		(*OutputStream) << "#include \"Misc/EnumRange.h\"" << std::endl;
+		(*OutputStream) << std::endl;
+		(*OutputStream) << "UENUM(BlueprintType)" << std::endl;
+		(*OutputStream) << "enum class " << EnumName << " : uint8 {" << std::endl;
+		
+		return true;
+	}
+	
+	void OutputElement(const FString& Key){
+		(*OutputStream) << "\t" << EnumName << "_" << *Key << " UMETA(DisplayName = \"" << *Key << "\", ToolTip=\"" << *Key << "\")," << std::endl;
+	}
+	
+	void Finalize(){
+		(*OutputStream) << "\tNum UMETA(Hidden)" << std::endl;
+		(*OutputStream) << "};" << std::endl;
+		(*OutputStream) << std::endl;
+		(*OutputStream) << "ENUM_RANGE_BY_COUNT(" << EnumName << ", " << EnumName << "::Num);" << std::endl;
+	}
+	
+private:
+	
+	std::wstring EnumName;
+	
+	std::wfstream* OutputStream;
+};
 
 //----------------------------------------------------------------------//
 //
@@ -265,6 +336,7 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 			// (リビルドの場合は消去しているので問答無用で追加)
 			if(isRebuild == true){
 				AssetList->AddRow(key, tmp);
+				
 			} else {
 				
 				if(pKey == nullptr){
@@ -273,6 +345,26 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 			}
 		}
 	}
+	
+	if(bOutputHeader == true){
+		
+		HeaderOutput OutputEnum;
+		
+		if(OutputEnum.Setup(HeaderPath, GetName()) == true){
+			
+			AssetList->ForeachRow(TEXT(""), TFunctionRef<void(const FName&, const FSNRelevantAssetDataTable &)>(
+					// アセットをアニメーションマップに登録
+					[&](const FName& key, const FSNRelevantAssetDataTable & info){
+						// リストに登録
+						OutputEnum.OutputElement(key.ToString());
+					}
+				)
+			);
+			
+			OutputEnum.Finalize();
+		}
+	}
+	
 	// 終了メッセージを表示
 	if(bShowDialog){
 		

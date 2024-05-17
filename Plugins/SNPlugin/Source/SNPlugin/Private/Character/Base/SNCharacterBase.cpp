@@ -3,6 +3,10 @@
 
 #include "Character/Base/SNCharacterBase.h"
 
+#include "SNDef.h"
+#include "Animation/SNAnimInstanceBase.h"
+#include "Animation/Components/SNLocomotionComponent.h"
+
 // Sets default values
 ASNCharacterBase::ASNCharacterBase()
 {
@@ -31,9 +35,79 @@ void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ASNCharacterBase::SetAnimationState(const FName& Name)
+void ASNCharacterBase::SetCurrentState(const FName& Name)
 {
-	CurrentAnimationState = Name;
+	if(CurrentState != Name)
+	{
+		PreState = CurrentState;
+		
+		CurrentState = Name;
+
+		SNPLUGIN_LOG(TEXT("State : %s"), *CurrentState.ToString());
+	}
+}
+
+FName ASNCharacterBase::GetCurrentState() const {
+	return CurrentState;
+}
+
+FName ASNCharacterBase::GetPrevState() const {
+	return PreState;
+}
+
+bool ASNCharacterBase::IsCurrentState(const FName& State) const {
+	return (CurrentState == State) ? true : false;
+}
+
+bool ASNCharacterBase::IsPreState(const FName& State) const {
+	return (PreState == State) ? true : false;
+}
+
+UAnimInstance* ASNCharacterBase::GetAnimInstance()
+{
+	USkeletalMeshComponent* SkeletalMeshComponent(GetMesh());
+
+	if(SkeletalMeshComponent != nullptr)
+	{
+		return SkeletalMeshComponent->GetAnimInstance();
+	}
+
+	return nullptr;
+}
+
+USNLocomotionComponent* ASNCharacterBase::GetLocomotionComponent()
+{
+	return Cast<USNLocomotionComponent>(GetComponentByClass(USNLocomotionComponent::StaticClass()));
+}
+
+void ASNCharacterBase::PlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
+{
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+
+	if(AnimInstance != nullptr)
+	{
+		AnimInstance->PlayAnimationSequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+	}
+}
+
+void ASNCharacterBase::PlayMontage(const FName& Name, float PlayRate, float StartTime)
+{
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+
+	if(AnimInstance != nullptr)
+	{
+		AnimInstance->PlayAnimationMontage(Name, PlayRate, StartTime);
+	}
+}
+
+void ASNCharacterBase::JumpMontageSection(const FName& Name, const FName& Section)
+{
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+
+	if(AnimInstance != nullptr)
+	{
+		AnimInstance->JumpAnimationMontageSection(Name, Section);
+	}
 }
 
 

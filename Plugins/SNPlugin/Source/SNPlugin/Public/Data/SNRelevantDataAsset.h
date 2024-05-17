@@ -16,10 +16,10 @@ struct FAssetSetting{
 	GENERATED_USTRUCT_BODY()
 	
 	//!< アセットのディレクトリパス
-	UPROPERTY(EditAnywhere, Category = "Animation", DisplayName = "参照アセットのディレクトリ")
+	UPROPERTY(EditAnywhere, Category = "Asset", DisplayName = "参照アセットのディレクトリ")
 	FName	AssetPath;
 	
-	UPROPERTY(EditAnywhere, Category = "Animation", DisplayName = "サブディレクトリも検索するか")
+	UPROPERTY(EditAnywhere, Category = "Asset", DisplayName = "サブディレクトリも検索するか")
 	bool	bRecursiveSerarch = true;;
 };
 
@@ -53,6 +53,10 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (CallInEditor = "true"))
 	void AssetBuild();
 	//! @}
+
+	int	GetAssetNum() const ;
+
+	TArray<FName> GetAssetKeys() const ;
 	
 	//! @{@name アセットへのポインタを取得
 	UObject*	GetAsset(const FName& key);
@@ -61,6 +65,8 @@ public:
 	//! @{@name 初期化が終了しているか
 	bool		IsSetupDone() const ;
 	//! @}
+
+	
 	
 	virtual void BeginDestroy() override ;
 	
@@ -98,6 +104,12 @@ private:
 	//! @{@name アセットのビルドを実行
 	void	ExecBuild(bool isRebuild, bool bShowDialog = true);
 	//! @}
+
+	UPROPERTY(EditAnywhere, Category = "Asset|Header", DisplayName = "ENUMのヘッダを出力するか")
+	bool	bOutputHeader = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Asset|Header", DisplayName = "ヘッダを出力するディレクトリ")
+	FName	HeaderPath;
 	
 	//!< アニメーションアセットのフォルダ
 	UPROPERTY(EditAnywhere, Category = "Animation", DisplayName = "参照アセット情報")
@@ -129,5 +141,19 @@ private:
 //----------------------------------------------------------------------//
 FORCEINLINE bool	USNRelevantDataAsset::IsSetupDone() const {
 	return bAssetLoaded;
+}
+
+FORCEINLINE int USNRelevantDataAsset::GetAssetNum() const
+{
+	return AssetMap.Num();
+}
+
+FORCEINLINE TArray<FName> USNRelevantDataAsset::GetAssetKeys() const 
+{
+	TArray<FName> Keys;
+
+	AssetMap.GetKeys(Keys);
+	
+	return Keys;
 }
 

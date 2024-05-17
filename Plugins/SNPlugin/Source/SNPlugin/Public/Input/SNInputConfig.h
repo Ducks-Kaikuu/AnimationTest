@@ -40,6 +40,8 @@ public:
 //
 //! @brief 入力制御用のコンフィグ
 //
+//! @note SNPlayerControllerに登録して使用。
+//
 //----------------------------------------------------------------------//
 UCLASS()
 class SNPLUGIN_API USNInputConfig : public UDataAsset
@@ -89,6 +91,10 @@ private:
 	//!< オーナー
 	UPROPERTY()
 	TObjectPtr<UObject> OwnerActor = nullptr;
+	
+	//!< GCで消されないために保持
+	UPROPERTY()
+	TArray<TObjectPtr<USNActionBase>> ActionList;
 	
 	//!< 非同期ロード用のハンドル
 	TSharedPtr<FStreamableHandle> StreamableHandle = nullptr;

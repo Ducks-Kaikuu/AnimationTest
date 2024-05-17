@@ -143,6 +143,8 @@ void	USNInputConfig::FinishLoadAsset(){
 				}
 				// 入力コンポーネントにバインド
 				Action->Initialize(InputComponent, Input.InputAction.Get(), OwnerActor);
+				// リストに登録
+				ActionList.Add(Action);
 			}
 		}
 		
@@ -198,4 +200,6 @@ void USNInputConfig::Release(){
 	}
 	// オーナーを初期化
 	OwnerActor = nullptr;
+	// アクションをリセット
+	ActionList.Empty();
 }

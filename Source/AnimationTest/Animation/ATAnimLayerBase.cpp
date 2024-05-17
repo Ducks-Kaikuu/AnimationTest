@@ -6,6 +6,18 @@
 #include "Animation/AnimNodeReference.h"
 #include "Animation/AnimNode_SequencePlayer.h"
 
+void UATAnimLayerBase::NativeInitializeAnimation()
+{
+	Super::NativeInitializeAnimation();
+
+	FCanTakeTransition Transition;
+
+	Transition.BindUObject(this, &UATAnimLayerBase::TestTransition);
+	
+	AddNativeTransitionBinding(TEXT("LocomotionStateMachine"), TEXT("Idle"), TEXT("Move"), Transition);
+	
+}
+
 void UATAnimLayerBase::OnBecaomeRelevantIdle(const FAnimUpdateContext& Context, const FAnimNodeReference& Node)
 {
 	
@@ -18,3 +30,9 @@ void UATAnimLayerBase::OnBecaomeRelevantIdle(const FAnimUpdateContext& Context, 
 		FString name = AnimationAsset->GetName();
 	}
 }
+
+bool UATAnimLayerBase::TestTransition()
+{
+	return true;
+}
+

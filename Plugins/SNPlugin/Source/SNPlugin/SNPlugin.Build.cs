@@ -28,9 +28,12 @@ public class SNPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
+				"CoreUObject",
 				"CoreOnline",
+				"Engine",
 				"ChaosVehicles",
 				"GameplayTags",
+				"UMG",
 				// ... add other public dependencies that you statically link with here ...
 			}
 		);
@@ -49,15 +52,10 @@ public class SNPlugin : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-				"CoreOnline",
-				"CoreUObject",
-				"Engine",
 				"Slate",
 				"SlateCore",
 				"AIModule",
 				"EnhancedInput",
-				"GameplayTags",
 				"ModularGameplay",
 				"OnlineSubsystemUtils"
 				// ... add private dependencies that you statically link with here ...	
