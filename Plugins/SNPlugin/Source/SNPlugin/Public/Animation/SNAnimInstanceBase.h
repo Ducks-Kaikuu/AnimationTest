@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Character/SNCharacterDef.h"
 #include "SNAnimInstanceBase.generated.h"
 
 class USNRelevantDataAsset;
@@ -31,10 +32,10 @@ public:
 	const UBlendSpace* GetBlendSpace(const FName& Name) const ;
 
 	UFUNCTION(BlueprintCallable, Category = "SN|Animation|State", meta=(BlueprintThreadSafe))
-	bool IsCurrentState(const FName& State) const;
+	bool IsCurrentState(const FName& State, ECharacterStateType Type=ECharacterStateType::Full) const;
 
 	UFUNCTION(BlueprintCallable, Category = "SN|Animation|State", meta=(BlueprintThreadSafe))
-	bool IsPreState(const FName& State) const;
+	bool IsPreState(const FName& State, ECharacterStateType Type=ECharacterStateType::Full) const;
 
 	UFUNCTION(BlueprintPure, Category="SN|Animation|Blendspace", meta=(BlueprintThreadSafe))
 	FVector GetBlendspaceParam(const FName& Key);

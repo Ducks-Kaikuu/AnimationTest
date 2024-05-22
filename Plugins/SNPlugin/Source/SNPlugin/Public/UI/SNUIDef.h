@@ -12,5 +12,7 @@ enum class EWidgetLayer:uint8{
 	Layer5,
 	// 描画優先 : 高い
 	Num,
+
+	Invalid =0xff,
 };
 //! @}

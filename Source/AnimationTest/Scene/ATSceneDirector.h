@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Scene/SNSceneBase.h"
 #include "ATSceneDirector.generated.h"
 
 UCLASS()
-class ANIMATIONTEST_API AATSceneDirector : public AActor
+class ANIMATIONTEST_API AATSceneDirector : public ASNSceneBase
 {
 	GENERATED_BODY()
 	

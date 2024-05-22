@@ -4,10 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Character/SNCharacterDef.h"
+
 #include "SNCharacterBase.generated.h"
 
 class USNLocomotionComponent;
 
+// 上半身、下半身の制御をベースに入れるか悩みましたが…。基本機能なので入れました。
+// 大したコストでもないし…。
 UCLASS()
 class SNPLUGIN_API ASNCharacterBase : public ACharacter
 {
@@ -22,29 +26,31 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
+	/** Returns properties that are replicated for the lifetime of the actor channel */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//! @{@name ステートの設定
-	void SetCurrentState(const FName& Name);
+	void SetCurrentState(const FName& Name, ECharacterStateType Type=ECharacterStateType::Full);
 	//! @}
 	
 	//! @{@name 現在のステートを取得
 	UFUNCTION(BlueprintCallable, Category="SN|Character")
-	FName GetCurrentState() const ;
+	FName GetCurrentState(ECharacterStateType Type=ECharacterStateType::Full) const ;
 	//! @}
 	
 	//! @{@name 1つ前のステートを取得
 	UFUNCTION(BlueprintCallable, Category="SN|Character")
-	FName GetPrevState() const ;
+	FName GetPrevState(ECharacterStateType Type=ECharacterStateType::Full) const ;
 	//! @}
 	
 	//! @{@name 現在のステートかチェック
 	UFUNCTION(BlueprintCallable, Category = "SN|Character", meta=(BlueprintThreadSafe))
-	bool IsCurrentState(const FName& State) const;
+	bool IsCurrentState(const FName& State, ECharacterStateType Type=ECharacterStateType::Full) const;
 	//! @}
 	
 	//! @{@name 1つ前のステートかチェック
 	UFUNCTION(BlueprintCallable, Category = "SN|Character", meta=(BlueprintThreadSafe))
-	bool IsPreState(const FName& State) const;
+	bool IsPreState(const FName& State, ECharacterStateType Type=ECharacterStateType::Full) const;
 	//! @}
 	
 	//! @{@name アニメーションインスタンスを取得
@@ -74,8 +80,21 @@ protected:
 	virtual void BeginPlay() override;
 	
 private:
-	
-	FName CurrentState = NAME_None;
-	
-	FName PreState = NAME_None;
+	UPROPERTY(Replicated)
+	FName UppderBodyCurrentState = NAME_None;
+
+	UPROPERTY(Replicated)
+	FName UppderBodyPreStateName = NAME_None;
+
+	UPROPERTY(Replicated)
+	FName LowerBodyCurrentState = NAME_None;
+
+	UPROPERTY(Replicated)
+	FName LowerBodyPreStateName = NAME_None;
+
+	UPROPERTY(Replicated)
+	FName FullBodyCurrentState = NAME_None;
+
+	UPROPERTY(Replicated)
+	FName FullBodyPreStateName = NAME_None;
 };

@@ -15,6 +15,7 @@ public class AnimationTest : ModuleRules
 												"Engine", 
 												"InputCore", 
 												"SNPlugin",
+												"StateTreeModule",
 												"EnhancedInput" 
 											}
 										);

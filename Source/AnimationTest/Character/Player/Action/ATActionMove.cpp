@@ -3,13 +3,10 @@
 
 #include "AnimationTest/Character/Player/Action/ATActionMove.h"
 
-#include "SNDef.h"
 #include "Animation/SNAnimInstanceBase.h"
 #include "Animation/Components/SNLocomotionComponent.h"
 #include "AnimationTest/Character/Player/ATPlayer.h"
 #include "Curves/CurveVector.h"
-#include "GameFramework/PawnMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 
 void UATActionMove::ExecAction(const FInputActionValue& InputActionValue)
 {
@@ -23,10 +20,10 @@ void UATActionMove::ExecAction(const FInputActionValue& InputActionValue)
 		
 		if(Mag < 0.1f)
 		{
-			Player->SetCurrentState(FName(TEXT("NormalIdle")));	
+			Player->SetCurrentState(FName(TEXT("NormalIdle")), ECharacterStateType::Lower);	
 		} else
 		{
-			Player->SetCurrentState(FName(TEXT("LandMove")));
+			Player->SetCurrentState(FName(TEXT("LandMove")), ECharacterStateType::Lower);
 			
 			USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(Player->GetAnimInstance()));
 			

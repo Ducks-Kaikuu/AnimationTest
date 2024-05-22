@@ -286,10 +286,10 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 			)
 		);
 	} else {
-		if (bShowDialog)
-		{
+		if(bShowDialog){
 			// エラーメッセージを表示して終了
 			FString msg(FString::Printf(TEXT("FSNRelevantAssetDataTable指定のデータテーブルが設定されていません。")));
+			
 			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(msg));
 		}
 		return;
@@ -301,7 +301,7 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 	}
 	
 	for(auto& setting:AssetPath){
-		
+		// 指定されたディレクトリに含まれるアセットを検索
 		FARFilter filter;
 		// フィルター情報を設定
 		filter.PackagePaths.Add(setting.AssetPath);
@@ -319,34 +319,53 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 			FName key;
 			// Valueからキー情報を検索
 			const FName* pKey = pathList.FindKey(asset.ToSoftObjectPath());
-			
+			// 検索に引っかかった場合はすでにデータテーブルに含まれている
 			if(pKey != nullptr){
 				key = *pKey;
 			} else {
-				
+				// アセットが登録されている順番からキー情報を生成
 				FString name = FString::Printf(TEXT("%d"), AssetList->GetRowMap().Num());
 				
 				key = *name;
 			}
 			
 			FSNRelevantAssetDataTable tmp;
-			
+			// アセット情報を設定
 			tmp.Asset = TSoftObjectPtr<UObject>(asset.ToSoftObjectPath());
 			// リビルドではなく、DTにも登録されていない場合は追加
 			// (リビルドの場合は消去しているので問答無用で追加)
 			if(isRebuild == true){
 				AssetList->AddRow(key, tmp);
-				
 			} else {
 				
 				if(pKey == nullptr){
 					AssetList->AddRow(key, tmp);
+				} else {
+					// データテーブルの情報を取得
+					FSNRelevantAssetDataTable* DataTable(AssetList->FindRow<FSNRelevantAssetDataTable>(key, FString()));
+					
+					if(DataTable != nullptr){
+						// データを上書き
+						*DataTable = tmp;
+					}
 				}
 			}
 		}
 	}
 	
 	if(bOutputHeader == true){
+		
+		if(AssetList->GetRowMap().Num() >= 0xfe){
+			
+			if(bShowDialog){
+				// エラーメッセージを表示して終了
+				FString msg(FString::Printf(TEXT("テーブルに含まれているアセットが規定数(255個)を超えています。\nヘッダを使用してEnumでアクセス場合、アセット数を255個以内に収めてください。")));
+				
+				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(msg));
+			}
+			
+			return;
+		}
 		
 		HeaderOutput OutputEnum;
 		
@@ -364,7 +383,6 @@ void	USNRelevantDataAsset::ExecBuild(bool isRebuild, bool bShowDialog/* = true*/
 			OutputEnum.Finalize();
 		}
 	}
-	
 	// 終了メッセージを表示
 	if(bShowDialog){
 		

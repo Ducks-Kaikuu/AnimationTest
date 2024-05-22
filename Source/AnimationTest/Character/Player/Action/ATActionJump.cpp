@@ -19,7 +19,7 @@ void UATActionJump::ExecAction(const FInputActionValue& InputActionValue)
 			
 			Player->Jump();
 
-			Player->SetCurrentState(TEXT("LandIdleJump"));
+			Player->SetCurrentState(TEXT("LandIdleJump"), ECharacterStateType::Lower);
 
 			Player->PlayMontage(TEXT("LandIdleJump"));
 			
@@ -40,7 +40,7 @@ void UATActionJump::OnLanded(const FHitResult& HitResult)
 		
 		Player->LandedDelegate.RemoveDynamic(this, &UATActionJump::OnLanded);
 
-		Player->SetCurrentState(TEXT("NormalIdle"));
+		Player->SetCurrentState(TEXT("NormalIdle"), ECharacterStateType::Lower);
 	}
 }
 

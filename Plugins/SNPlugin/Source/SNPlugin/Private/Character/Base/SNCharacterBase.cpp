@@ -6,25 +6,61 @@
 #include "SNDef.h"
 #include "Animation/SNAnimInstanceBase.h"
 #include "Animation/Components/SNLocomotionComponent.h"
+#include "Net/UnrealNetwork.h"
 
-// Sets default values
-ASNCharacterBase::ASNCharacterBase()
-{
+//----------------------------------------------------------------------//
+//
+//! @brief デフォルトコンストラクタ
+//
+//----------------------------------------------------------------------//
+ASNCharacterBase::ASNCharacterBase(){
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	// レプリケートをON
+	SetReplicates(true);
+	// 移動、回転などの動きをレプリケート
+	SetReplicateMovement(true);
 }
 
-// Called when the game starts or when spawned
-void ASNCharacterBase::BeginPlay()
-{
+//----------------------------------------------------------------------//
+//
+//! @brief レプリケートするメンバを取得
+//
+//! @param OutLifetimeProps レプリケートするメンバ
+//
+//! @note レプリケートするメンバはここで登録しないとレプリケートされない
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ASNCharacterBase, UppderBodyCurrentState);
+	DOREPLIFETIME(ASNCharacterBase, UppderBodyPreStateName);
+	DOREPLIFETIME(ASNCharacterBase, LowerBodyCurrentState);
+	DOREPLIFETIME(ASNCharacterBase, LowerBodyPreStateName);
+	DOREPLIFETIME(ASNCharacterBase, FullBodyCurrentState);
+	DOREPLIFETIME(ASNCharacterBase, FullBodyPreStateName);
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ゲームがスタートしたとき、もしくはアクターがスポーンされたときに呼ばれます。
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::BeginPlay(){
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
-void ASNCharacterBase::Tick(float DeltaTime)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief 毎フレーム呼ばれます。
+//
+//! @param DeltaTime 経過時間
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
 }
@@ -35,32 +71,140 @@ void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ASNCharacterBase::SetCurrentState(const FName& Name)
-{
-	if(CurrentState != Name)
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートを設定
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetCurrentState(const FName& Name, ECharacterStateType Type){
+	
+	TFunction<bool(FName&, FName&, const FName&)> Function = [this](FName& PreState, FName& CurrentState, const FName& Input) -> bool
 	{
-		PreState = CurrentState;
+		bool bChanged = false;
 		
-		CurrentState = Name;
-
-		SNPLUGIN_LOG(TEXT("State : %s"), *CurrentState.ToString());
+		if(CurrentState != Input){
+			// 現在のステートを保存
+			PreState = CurrentState;
+			// ステートを変更
+			CurrentState = Input;
+			// 変更フラグをON
+			bChanged = true;
+		}
+		
+		return bChanged;
+	};
+	// 全身
+	if(Type == ECharacterStateType::Full){
+		
+		if(Function(FullBodyPreStateName, FullBodyCurrentState, Name) == true){
+			SNPLUGIN_LOG(TEXT("Full State : %s"), *FullBodyCurrentState.ToString());
+		}
+	} else 
+	// 上半身
+	if(Type == ECharacterStateType::Upper){
+		
+		if(Function(UppderBodyPreStateName, UppderBodyCurrentState, Name) == true){
+			SNPLUGIN_LOG(TEXT("Upper State : %s"), *UppderBodyCurrentState.ToString());
+		}
+	} else
+	// 下半身
+	if(Type == ECharacterStateType::Lower){
+		
+		if(Function(LowerBodyPreStateName, LowerBodyCurrentState, Name) == true){
+			SNPLUGIN_LOG(TEXT("Lower State : %s"), *LowerBodyCurrentState.ToString());
+		}
 	}
 }
 
-FName ASNCharacterBase::GetCurrentState() const {
-	return CurrentState;
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートを取得
+//
+//! @param Type タイプ
+//
+//! @retval 現在のステート
+//
+//----------------------------------------------------------------------//
+FName ASNCharacterBase::GetCurrentState(ECharacterStateType Type) const {
+	
+	if(Type == ECharacterStateType::Upper){
+		return UppderBodyCurrentState;
+	} else
+	if(Type == ECharacterStateType::Lower){
+		return LowerBodyCurrentState;
+	}
+	
+	return FullBodyCurrentState;
 }
 
-FName ASNCharacterBase::GetPrevState() const {
-	return PreState;
+//----------------------------------------------------------------------//
+//
+//! @brief 1つ前のステートを取得
+//
+//! @param Type タイプ
+//
+//! @retval 1つ前のステート
+//
+//----------------------------------------------------------------------//
+FName ASNCharacterBase::GetPrevState(ECharacterStateType Type) const {
+	
+	if(Type == ECharacterStateType::Upper){
+		return UppderBodyPreStateName;
+	} else
+	if(Type == ECharacterStateType::Lower){
+		return LowerBodyPreStateName;
+	}
+	
+	return FullBodyPreStateName;
 }
 
-bool ASNCharacterBase::IsCurrentState(const FName& State) const {
-	return (CurrentState == State) ? true : false;
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートかチェック
+//
+//! @param State ステート
+//! @param Type  タイプ
+//
+//! @retval true  現在のステート
+//! @retval false 現在のステートではない
+//
+//----------------------------------------------------------------------//
+bool ASNCharacterBase::IsCurrentState(const FName& State, ECharacterStateType Type) const {
+	
+	if(Type == ECharacterStateType::Upper){
+		return (UppderBodyCurrentState == State) ? true : false;
+	} else
+	if(Type == ECharacterStateType::Lower){
+		return (LowerBodyCurrentState == State) ? true : false;
+	}
+	
+	return (FullBodyCurrentState == State) ? true : false;
 }
 
-bool ASNCharacterBase::IsPreState(const FName& State) const {
-	return (PreState == State) ? true : false;
+//----------------------------------------------------------------------//
+//
+//! @brief 1つ前のステートかチェック
+//
+//! @param State ステート
+//! @param Type  タイプ
+//
+//! @retval true  1つ前ののステート
+//! @retval false 1つ前のステートではない
+//
+//----------------------------------------------------------------------//
+bool ASNCharacterBase::IsPreState(const FName& State, ECharacterStateType Type) const {
+	
+	if(Type == ECharacterStateType::Upper){
+		return (UppderBodyPreStateName == State) ? true : false;
+	} else
+	if(Type == ECharacterStateType::Lower){
+		return (LowerBodyPreStateName == State) ? true : false;
+	}
+	
+	return (FullBodyPreStateName == State) ? true : false;
 }
 
 UAnimInstance* ASNCharacterBase::GetAnimInstance()

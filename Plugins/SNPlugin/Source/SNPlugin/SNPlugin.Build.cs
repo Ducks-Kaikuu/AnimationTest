@@ -33,6 +33,7 @@ public class SNPlugin : ModuleRules
 				"Engine",
 				"ChaosVehicles",
 				"GameplayTags",
+				"StateTreeModule",
 				"UMG",
 				// ... add other public dependencies that you statically link with here ...
 			}

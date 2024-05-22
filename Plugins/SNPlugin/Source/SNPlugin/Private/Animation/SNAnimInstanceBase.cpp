@@ -18,7 +18,7 @@ void USNAnimInstanceBase::NativeInitializeAnimation()
 	}
 }
 
-bool USNAnimInstanceBase::IsCurrentState(const FName& State) const
+bool USNAnimInstanceBase::IsCurrentState(const FName& State, ECharacterStateType Type) const
 {
 	ASNCharacterBase* Character(Cast<ASNCharacterBase>(TryGetPawnOwner()));
 
@@ -27,10 +27,10 @@ bool USNAnimInstanceBase::IsCurrentState(const FName& State) const
 		return false;
 	}
 
-	return Character->IsCurrentState(State);
+	return Character->IsCurrentState(State, Type);
 }
 
-bool USNAnimInstanceBase::IsPreState(const FName& State) const
+bool USNAnimInstanceBase::IsPreState(const FName& State, ECharacterStateType Type) const
 {
 	ASNCharacterBase* Character(Cast<ASNCharacterBase>(TryGetPawnOwner()));
 
@@ -39,7 +39,7 @@ bool USNAnimInstanceBase::IsPreState(const FName& State) const
 		return false;
 	}
 
-	return Character->IsPreState(State);
+	return Character->IsPreState(State, Type);
 }
 
 FVector USNAnimInstanceBase::GetBlendspaceParam(const FName& Key)

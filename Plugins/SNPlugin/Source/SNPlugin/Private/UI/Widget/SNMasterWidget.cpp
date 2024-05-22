@@ -71,6 +71,13 @@ void USNMasterWidget::SetLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget){
 		
 		return;
 	}
+
+	if(Widget->GetRegistLayer() != EWidgetLayer::Invalid)
+	{
+		SNPLUGIN_WARNING(TEXT("Widget is already registed."));
+
+		return;
+	}
 	// パネルがない場合も警告
 	if(LayerPanel[(int)Layer] == nullptr){
 		
@@ -86,6 +93,8 @@ void USNMasterWidget::SetLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget){
 		CanvasPanelSlot->SetAnchors(FAnchors(0, 0, 1, 1));
 		// オフセットを設定
 		CanvasPanelSlot->SetOffsets(FMargin(0, 0, 0, 0));
+		// 登録したレイヤー情報を設定
+		Widget->SetRegistLayer(Layer);
 	}
 }
 
@@ -116,6 +125,8 @@ void USNMasterWidget::RemoveLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget)
 	}
 	// レイヤーから削除
 	LayerPanel[(int)Layer]->RemoveChild(Widget);
+	// 登録したレイヤー情報を無効化
+	Widget->SetRegistLayer(EWidgetLayer::Invalid);
 }
 
 //----------------------------------------------------------------------//

@@ -4,6 +4,7 @@
 #include "AnimationTest/Character/Player/ATPlayer.h"
 
 #include "Character/SNPlayerController.h"
+#include "AnimationTest/Animation/Monkey000Animation.h"
 
 void AATPlayer::BeginPlay()
 {
