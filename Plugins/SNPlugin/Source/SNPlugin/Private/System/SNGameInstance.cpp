@@ -65,3 +65,15 @@ void USNGameInstance::Init()
 		}
 	}
 }
+
+void USNGameInstance::SetCurrentScene(ASNSceneBase* Scene)
+{
+	CurrentScene = Scene;
+}
+
+ASNSceneBase* USNGameInstance::GetCurrentScene()
+{
+	return CurrentScene;
+}
+
+

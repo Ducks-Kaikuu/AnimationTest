@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/StateTreeTaskBlueprintBase.h"
+#include "UI/SNUIDef.h"
 #include "SNSceneStateTreeTaskBase.generated.h"
 
 struct FStreamableHandle;
 class  USNUserWidgetBase;
+class ASNSceneBase;
 
 //----------------------------------------------------------------------//
 //
@@ -30,8 +32,18 @@ protected:
 	//! @}
 	
 	//! @{@name ウィジェットへのポインタを取得
-	USNUserWidgetBase* GetHudWidget(UClass* Class);
+	template<class T>
+	T*		GetHudWidget();
+	
+	template<class T>
+	TArray<TObjectPtr<T>>	GetHudWidgets();
 	//! @}
+
+	ASNSceneBase* GetCurrentScene() const ;
+
+	bool SetWidgetLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget);
+
+	bool SetVisibleWidget(EWidgetLayer Layer, USNUserWidgetBase* Widget);
 	
 protected:
 	
@@ -60,3 +72,45 @@ private:
 	//!< 非同期ロード用のハンドル
 	TSharedPtr<FStreamableHandle> HudStreamHundle = nullptr;
 };
+
+//----------------------------------------------------------------------//
+//
+//! @brief ウィジェットへのポインタを取得
+//
+//! @retval ウィジェットへのポインタ
+//
+//----------------------------------------------------------------------//
+template <class T>
+FORCEINLINE T* USNSceneStateTreeTaskBase::GetHudWidget(){
+	
+	for(USNUserWidgetBase* Widget:HudInsntaceList){
+		
+		if(T* Result = Cast<T>(Widget)){
+			return Result;
+		}
+	}
+	
+	return nullptr;
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ウィジェットへのポインタを取得
+//
+//! @retval ウィジェットへのポインタリスト
+//
+//----------------------------------------------------------------------//
+template<class T>
+FORCEINLINE TArray<TObjectPtr<T>> USNSceneStateTreeTaskBase::GetHudWidgets(){
+	
+	TArray<TObjectPtr<T>> Widgets;
+	
+	for(USNUserWidgetBase* Widget:HudInsntaceList){
+		
+		if(T* Result = Cast<T>(Widget)){
+			Widgets.Add(Result);
+		}
+	}
+	
+	return Widgets;
+}

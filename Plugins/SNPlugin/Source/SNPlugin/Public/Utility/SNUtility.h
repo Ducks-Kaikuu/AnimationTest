@@ -7,6 +7,8 @@
 #include "Engine/AssetManager.h"
 #include <Kismet/GameplayStatics.h>
 
+#include "System/SNGameInstance.h"
+
 class USNInputManagerSubsystem;
 /**
  * 
@@ -62,6 +64,9 @@ public:
 	template<class T>
 	static T* GetCurrentCameraActor();
 	//! @}
+
+	template<class T>
+	static T* GetOnlineSystem();
 };
 
 //----------------------------------------------------------------------//
@@ -185,3 +190,17 @@ FORCEINLINE T* SNUtility::GetCurrentCameraActor(){
 	
 	return Cast<T>(CameraActor);
 }
+
+template <class T>
+T* SNUtility::GetOnlineSystem()
+{
+	USNGameInstance* GameInstance(SNUtility::GetGameInstance<USNGameInstance>());
+
+	if(GameInstance == nullptr)
+	{
+		return nullptr;
+	}
+
+	return Cast<T>(GameInstance->GetOnlineSystem());
+}
+

@@ -4,18 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "AnimationTest/Scene/StateTree/ATMatchingSceneBase.h"
-#include "ATJoinSessionTask.generated.h"
+#include "ATSyncTask.generated.h"
 
+class USNButton;
 /**
  * 
  */
 UCLASS()
-class ANIMATIONTEST_API UATJoinSessionTask : public UATMatchingSceneBase
+class ANIMATIONTEST_API UATSyncTask : public UATMatchingSceneBase
 {
 	GENERATED_BODY()
 
 public:
-	
+
 	//! @{@name 毎フレームの更新処理
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) override;
 	//! @}
@@ -31,15 +32,10 @@ public:
 	void HudPostLoad() override;
 
 private:
-
-	UFUNCTION()
-	void OnStartSearchSession(const FString& Name);
 	
 	UFUNCTION()
-	void OnCompleteSearchSession(bool bResult);
-
-	UFUNCTION()
-	void OnCompleteJoinSession(FName SessionName, bool bResult);
-
-	bool bSucceed = false;
+	void OnCreateButtonClicked(USNButton* Button);
+	
+	UPROPERTY(EditAnywhere, Category="Battle")
+	TSoftObjectPtr<UObject> BattleMap;
 };

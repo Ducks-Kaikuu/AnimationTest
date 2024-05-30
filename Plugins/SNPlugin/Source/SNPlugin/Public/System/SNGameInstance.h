@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "SNGameInstance.generated.h"
 
+class ASNSceneBase;
 class USNContentAssetManager;
 class USNOnlineSystem;
 
@@ -38,6 +39,10 @@ public:
 	//! @{@name オンラインシステムのインスタンスを取得
 	USNOnlineSystem* GetOnlineSystem();
 	//! @}
+
+	void SetCurrentScene(ASNSceneBase* Scene);
+
+	ASNSceneBase* GetCurrentScene();
 	
 private:
 	
@@ -56,6 +61,9 @@ private:
 	//!< オンラインシステムクラスのインスタンス
 	UPROPERTY()
 	TObjectPtr<USNOnlineSystem> OnlineSystem = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<ASNSceneBase> CurrentScene = nullptr;
 };
 
 //----------------------------------------------------------------------//

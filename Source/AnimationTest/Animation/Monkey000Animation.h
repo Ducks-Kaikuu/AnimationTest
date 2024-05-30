@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Misc/EnumRange.h"
 
 UENUM(BlueprintType)

@@ -4,6 +4,7 @@
 #include "Scene/SNSceneBase.h"
 
 #include "Blueprint/UserWidget.h"
+#include "System/SNGameInstance.h"
 #include "UI/Widget/SNMasterWidget.h"
 #include "Utility/SNUtility.h"
 
@@ -36,7 +37,13 @@ void ASNSceneBase::BeginPlay(){
 	Super::BeginPlay();
 	// マスターウィジェットのクラス情報をロード
 	UClass* Class = Cast<UClass>(MasterWidgetClass.LoadSynchronous());
-	
+
+	USNGameInstance* GameInstance(SNUtility::GetGameInstance<USNGameInstance>());
+
+	if(GameInstance != nullptr)
+	{
+		GameInstance->SetCurrentScene(this);
+	}
 	if(Class != nullptr){
 		
 		APlayerController* PlayerController(SNUtility::GetPlayerController<APlayerController>());

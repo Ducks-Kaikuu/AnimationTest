@@ -13,5 +13,28 @@ UCLASS()
 class ANIMATIONTEST_API UATMatchingSceneBase : public USNSceneStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+public:
 	
+	static void SetSessionName(const FName& Name);
+
+	static FName GetSessionName();
+	
+protected:
+	
+	bool bExit = false;
+
+private:
+
+	static FName MatchingSessionName;
 };
+
+FORCEINLINE void UATMatchingSceneBase::SetSessionName(const FName& Name)
+{
+	MatchingSessionName = Name;
+}
+
+FORCEINLINE FName UATMatchingSceneBase::GetSessionName()
+{
+	return MatchingSessionName;
+}

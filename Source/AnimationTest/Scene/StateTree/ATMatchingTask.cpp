@@ -3,6 +3,9 @@
 
 #include "AnimationTest/Scene/StateTree/ATMatchingTask.h"
 
+#include "AnimationTest/UI/Widget/Matching/ATMatchingMenu.h"
+#include "UI/Widget/SNButton.h"
+
 EStateTreeRunStatus UATMatchingTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime)
 {
 	EStateTreeRunStatus Result = Super::Tick(Context, DeltaTime);
@@ -33,7 +36,22 @@ void UATMatchingTask::HudPostLoad()
 {
 	Super::HudPostLoad();
 
-	
+	UATMatchingMenu* Menu = GetHudWidget<UATMatchingMenu>();
+
+	if(Menu != nullptr)
+	{
+		if(USNButton* Button = Menu->GetHostSessionButton())
+		{
+			Button->OnClickedDelegate.AddDynamic(this, &UATMatchingTask::OnClickHostSession);
+		}
+
+		if(USNButton* Button = Menu->GetJoinSessionButton())
+		{
+			Button->OnClickedDelegate.AddDynamic(this, &UATMatchingTask::OnClickJoinSession);
+		}
+
+		SetVisibleWidget(EWidgetLayer::Layer3, Menu);
+	}
 }
 
 void UATMatchingTask::OnClickHostSession(USNButton* Button)

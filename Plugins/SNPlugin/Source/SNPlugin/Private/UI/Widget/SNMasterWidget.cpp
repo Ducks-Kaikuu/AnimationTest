@@ -31,7 +31,7 @@ void USNMasterWidget::Init(){
 	
 	for(int i=0 ; i<(int)EWidgetLayer::Num ; ++i){
 		// レイヤー名を生成
-		FName Name(*FString::Printf(TEXT("Layer%%d"), i));
+		FName Name(*FString::Printf(TEXT("Layer%d"), i));
 		// レイヤーを登録
 		LayerPanel[i] = Cast<UCanvasPanel>(GetWidgetFromName(Name));
 	}
@@ -83,6 +83,13 @@ void USNMasterWidget::SetLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget){
 		
 		SNPLUGIN_WARNING(TEXT("SetLayer : Layer Panel is nullptr -> %d"), (int)Layer);
 		
+		return;
+	}
+
+	if(LayerPanel[(int)Layer]->HasChild(Widget) == true)
+	{
+		SNPLUGIN_ERROR(TEXT("SetLayer : Widget is already setted. -> %s"), *Widget->GetName());
+
 		return;
 	}
 	// キャンバスを取得

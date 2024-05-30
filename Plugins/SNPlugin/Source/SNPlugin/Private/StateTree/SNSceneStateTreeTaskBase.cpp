@@ -5,6 +5,7 @@
 
 #include "SNDef.h"
 #include "Scene/SNSceneBase.h"
+#include "System/SNGameInstance.h"
 #include "UI/Widget/SNMasterWidget.h"
 #include "Utility/SNUtility.h"
 
@@ -61,27 +62,6 @@ void USNSceneStateTreeTaskBase::ExitState(FStateTreeExecutionContext& Context, c
 	}
 	// リストを空に設定
 	HudInsntaceList.Empty();
-}
-
-//----------------------------------------------------------------------//
-//
-//! @brief ウィジェットクラスへのポインタを取得
-//
-//! @param Class クラス情報
-//
-//! @retval ウィジェットクラスへのポインタ
-//
-//----------------------------------------------------------------------//
-USNUserWidgetBase* USNSceneStateTreeTaskBase::GetHudWidget(UClass* Class){
-	
-	for(USNUserWidgetBase* Widget:HudInsntaceList){
-		// クラス情報を比較
-		if(Widget->GetClass() == Class){
-			return Widget;
-		}
-	}
-	
-	return nullptr;
 }
 
 //----------------------------------------------------------------------//
@@ -163,5 +143,58 @@ void USNSceneStateTreeTaskBase::FinishLoadHudClass(){
 void USNSceneStateTreeTaskBase::HudPostLoad(){
 	
 }
+
+ASNSceneBase* USNSceneStateTreeTaskBase::GetCurrentScene() const
+{
+	USNGameInstance* GameInstance(SNUtility::GetGameInstance<USNGameInstance>());
+
+	if(GameInstance == nullptr)
+	{
+		SNPLUGIN_LOG(TEXT("Failed to get current scene."));
+
+		return nullptr;
+	}
+	
+	ASNSceneBase* Scene(GameInstance->GetCurrentScene());
+
+	return Scene;
+}
+
+bool USNSceneStateTreeTaskBase::SetWidgetLayer(EWidgetLayer Layer, USNUserWidgetBase* Widget)
+{
+	ASNSceneBase* Scene(GetCurrentScene());
+
+	if(Scene == nullptr)
+	{
+		return false;
+	}
+
+	USNMasterWidget* MasterWidget(Scene->GetMasterWidget());
+
+	if(MasterWidget == nullptr)
+	{
+		return false;
+	}
+
+	MasterWidget->SetLayer(Layer, Widget);
+
+	return true;
+}
+
+bool USNSceneStateTreeTaskBase::SetVisibleWidget(EWidgetLayer Layer, USNUserWidgetBase* Widget)
+{
+	bool Result = SetWidgetLayer(Layer, Widget);
+
+	if(Result == false)
+	{
+		return false;
+	}
+
+	Widget->SetVisibility(ESlateVisibility::Visible);
+
+	return true;
+}
+
+
 
 

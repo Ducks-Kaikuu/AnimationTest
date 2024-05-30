@@ -3,3 +3,4 @@
 
 #include "AnimationTest/Scene/StateTree/ATMatchingSceneBase.h"
 
+FName UATMatchingSceneBase::MatchingSessionName = NAME_None;

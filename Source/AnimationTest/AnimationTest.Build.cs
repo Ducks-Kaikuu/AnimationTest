@@ -16,6 +16,8 @@ public class AnimationTest : ModuleRules
 												"InputCore", 
 												"SNPlugin",
 												"StateTreeModule",
+												"OnlineSubsystem",
+												"OnlineSubsystemUtils",
 												"EnhancedInput" 
 											}
 										);
