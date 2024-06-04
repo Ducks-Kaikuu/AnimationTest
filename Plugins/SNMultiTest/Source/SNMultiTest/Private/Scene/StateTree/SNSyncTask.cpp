@@ -45,7 +45,7 @@ EStateTreeRunStatus USNSyncTask::EnterState(FStateTreeExecutionContext& Context,
 
 	SNPLUGIN_ASSERT(PlayerController != nullptr, TEXT("PlayerController is nullptr."));
 	
-	PlayerController->EnabledInputType(FName(TEXT("Battle")), true);
+	PlayerController->EnabledInputType(FName(TEXT("Player")), true);
 	
 	return Result;
 }
