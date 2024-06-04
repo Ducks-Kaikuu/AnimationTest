@@ -6,3 +6,4 @@ Intermediate/
 *.pdb
 *.exp
 *.sln
+Plugins/SNMultiTest/Binaries/
