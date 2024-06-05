@@ -85,7 +85,7 @@ void USNLocomotionComponent::MoveGround(const FVector2D& Vector)
 
 	MovementComponent->MaxWalkSpeed = TmpSpeed;
 
-	SNPLUGIN_LOG(TEXT("Speed %f / Mag %f"), MovementComponent->MaxWalkSpeed, Mag);
+	//SNPLUGIN_LOG(TEXT("Speed %f / Mag %f"), MovementComponent->MaxWalkSpeed, Mag);
 
 	FRotator ControlRotation(Character->GetControlRotation());
 
