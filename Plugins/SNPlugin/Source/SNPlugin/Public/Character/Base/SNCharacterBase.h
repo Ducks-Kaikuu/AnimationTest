@@ -20,15 +20,16 @@ class SNPLUGIN_API ASNCharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASNCharacterBase();
-
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	/** Returns properties that are replicated for the lifetime of the actor channel */
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	//! @{@name ステートの設定
 	void SetCurrentState(const FName& Name, ECharacterStateType Type=ECharacterStateType::Full);
 	//! @}
@@ -70,7 +71,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="SN|Animation")
 	void PlayMontage(const FName& Name, float PlayRate=1.0f, float StartTime=0.0f);
 	//! @}
-
+	
 	UFUNCTION(BlueprintCallable, Category="SN|Animation")
 	void JumpMontageSection(const FName& Name, const FName& Section);
 	
@@ -80,21 +81,30 @@ protected:
 	virtual void BeginPlay() override;
 	
 private:
-	UPROPERTY(Replicated)
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SetCurrentState_OnServer(const FName& Name, ECharacterStateType Type);
+
+	UFUNCTION(NetMulticast,Reliable, WithValidation)
+	void SetCurrentState_OnMulticast(const FName& Name, ECharacterStateType Type);
+	
+	void InternalSetCurrentState(const FName& Name, ECharacterStateType Type);
+	
+	UPROPERTY()
 	FName UppderBodyCurrentState = NAME_None;
-
-	UPROPERTY(Replicated)
+	
+	UPROPERTY()
 	FName UppderBodyPreStateName = NAME_None;
-
-	UPROPERTY(Replicated)
+	
+	UPROPERTY()
 	FName LowerBodyCurrentState = NAME_None;
-
-	UPROPERTY(Replicated)
+	
+	UPROPERTY()
 	FName LowerBodyPreStateName = NAME_None;
-
-	UPROPERTY(Replicated)
+	
+	UPROPERTY()
 	FName FullBodyCurrentState = NAME_None;
-
-	UPROPERTY(Replicated)
+	
+	UPROPERTY()
 	FName FullBodyPreStateName = NAME_None;
 };

@@ -7,6 +7,7 @@
 #include "Animation/SNAnimInstanceBase.h"
 #include "Animation/Components/SNLocomotionComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Utility/SNUtility.h"
 
 //----------------------------------------------------------------------//
 //
@@ -35,12 +36,12 @@ void ASNCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ASNCharacterBase, UppderBodyCurrentState);
-	DOREPLIFETIME(ASNCharacterBase, UppderBodyPreStateName);
-	DOREPLIFETIME(ASNCharacterBase, LowerBodyCurrentState);
-	DOREPLIFETIME(ASNCharacterBase, LowerBodyPreStateName);
-	DOREPLIFETIME(ASNCharacterBase, FullBodyCurrentState);
-	DOREPLIFETIME(ASNCharacterBase, FullBodyPreStateName);
+//	DOREPLIFETIME(ASNCharacterBase, UppderBodyCurrentState);
+//	DOREPLIFETIME(ASNCharacterBase, UppderBodyPreStateName);
+//	DOREPLIFETIME(ASNCharacterBase, LowerBodyCurrentState);
+//	DOREPLIFETIME(ASNCharacterBase, LowerBodyPreStateName);
+//	DOREPLIFETIME(ASNCharacterBase, FullBodyCurrentState);
+//	DOREPLIFETIME(ASNCharacterBase, FullBodyPreStateName);
 }
 
 //----------------------------------------------------------------------//
@@ -80,6 +81,41 @@ void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 //
 //----------------------------------------------------------------------//
 void ASNCharacterBase::SetCurrentState(const FName& Name, ECharacterStateType Type){
+	
+	if(SNUtility::IsServer(GetWorld()))
+	{
+		InternalSetCurrentState(Name, Type);
+		
+		SetCurrentState_OnMulticast(Name, Type);
+	} else
+	{
+		SetCurrentState_OnServer(Name, Type);
+	}
+}
+
+void ASNCharacterBase::SetCurrentState_OnServer_Implementation(const FName& Name, ECharacterStateType Type)
+{
+	SetCurrentState(Name, Type);
+}
+
+bool ASNCharacterBase::SetCurrentState_OnServer_Validate(const FName& Name, ECharacterStateType Type)
+{
+	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
+}
+
+
+void ASNCharacterBase::SetCurrentState_OnMulticast_Implementation(const FName& Name, ECharacterStateType Type)
+{
+	InternalSetCurrentState(Name, Type);
+}
+
+bool ASNCharacterBase::SetCurrentState_OnMulticast_Validate(const FName& Name, ECharacterStateType Type)
+{
+	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
+}
+
+
+void ASNCharacterBase::InternalSetCurrentState(const FName& Name, ECharacterStateType Type){
 	
 	TFunction<bool(FName&, FName&, const FName&)> Function = [this](FName& PreState, FName& CurrentState, const FName& Input) -> bool
 	{
