@@ -6,7 +6,6 @@
 #include "SNDef.h"
 #include "Animation/SNAnimInstanceBase.h"
 #include "Animation/Components/SNLocomotionComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "Utility/SNUtility.h"
 
 //----------------------------------------------------------------------//
@@ -50,8 +49,8 @@ void ASNCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 //
 //----------------------------------------------------------------------//
 void ASNCharacterBase::BeginPlay(){
-	Super::BeginPlay();
 	
+	Super::BeginPlay();
 }
 
 //----------------------------------------------------------------------//
@@ -67,8 +66,7 @@ void ASNCharacterBase::Tick(float DeltaTime){
 }
 
 // Called to bind functionality to input
-void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
+void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent){
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
@@ -82,71 +80,80 @@ void ASNCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 //----------------------------------------------------------------------//
 void ASNCharacterBase::SetCurrentState(const FName& Name, ECharacterStateType Type){
 	
-	if(SNUtility::IsServer(GetWorld()))
-	{
+	if(SNUtility::IsServer(GetWorld())){
+		// 現在のステートを変更
 		InternalSetCurrentState(Name, Type);
-		
+		// 各クライアントにマルチキャスト
 		SetCurrentState_OnMulticast(Name, Type);
-	} else
-	{
+	} else {
+		// サーバーへ通知
 		SetCurrentState_OnServer(Name, Type);
 	}
 }
 
-void ASNCharacterBase::SetCurrentState_OnServer_Implementation(const FName& Name, ECharacterStateType Type)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートを設定(サーバーで実行)
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetCurrentState_OnServer_Implementation(const FName& Name, ECharacterStateType Type){
 	SetCurrentState(Name, Type);
 }
 
-bool ASNCharacterBase::SetCurrentState_OnServer_Validate(const FName& Name, ECharacterStateType Type)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief サーバーへ通知するパラメータの妥当性をチェック
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//! @retval true  バリデート成功
+//! @retval false バリデート失敗
+//
+//----------------------------------------------------------------------//
+bool ASNCharacterBase::SetCurrentState_OnServer_Validate(const FName& Name, ECharacterStateType Type){
 	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
 }
 
 
-void ASNCharacterBase::SetCurrentState_OnMulticast_Implementation(const FName& Name, ECharacterStateType Type)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートを設定(各クライアントで実行)
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetCurrentState_OnMulticast_Implementation(const FName& Name, ECharacterStateType Type){
 	InternalSetCurrentState(Name, Type);
 }
 
-bool ASNCharacterBase::SetCurrentState_OnMulticast_Validate(const FName& Name, ECharacterStateType Type)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief 各クライアントへ通知するパラメータの妥当性をチェック
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//! @retval true  バリデート成功
+//! @retval false バリデート失敗
+//
+//----------------------------------------------------------------------//
+bool ASNCharacterBase::SetCurrentState_OnMulticast_Validate(const FName& Name, ECharacterStateType Type){
 	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
 }
 
-void ASNCharacterBase::SetBlendspaceParam(const FName& Key, const FVector& Param)
-{
-	if(SNUtility::IsServer(GetWorld()))
-	{
-		IntervalBlendspaceParam(Key, Param);
-
-		SetBlendspaceParam_OnMulticast(Key, Param);
-	} else
-	{
-		SetBlendspaceParam_OnServer(Key, Param);
-	}
-}
-
-void ASNCharacterBase::SetBlendspaceParam_OnServer_Implementation(const FName& Key, const FVector& Param)
-{
-	SetBlendspaceParam(Key, Param);
-}
-
-void ASNCharacterBase::SetBlendspaceParam_OnMulticast_Implementation(const FName& Key, const FVector& Param)
-{
-	IntervalBlendspaceParam(Key, Param);
-}
-
-void ASNCharacterBase::IntervalBlendspaceParam(const FName& Key, const FVector& Param)
-{
-	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
-	
-	if(AnimInstance != nullptr)
-	{
-		AnimInstance->SetBlendspaceParam(Key, Param);	
-	}
-}
-
+//----------------------------------------------------------------------//
+//
+//! @brief 現在のステートを設定
+//
+//! @param Name 新しく設定するステート
+//! @param Type タイプ
+//
+//----------------------------------------------------------------------//
 void ASNCharacterBase::InternalSetCurrentState(const FName& Name, ECharacterStateType Type){
 	
 	TFunction<bool(FName&, FName&, const FName&)> Function = [this](FName& PreState, FName& CurrentState, const FName& Input) -> bool
@@ -184,6 +191,68 @@ void ASNCharacterBase::InternalSetCurrentState(const FName& Name, ECharacterStat
 		if(Function(LowerBodyPreStateName, LowerBodyCurrentState, Name) == true){
 			SNPLUGIN_LOG(TEXT("Lower State : %s"), *LowerBodyCurrentState.ToString());
 		}
+	}
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ブレンドスペースのパラメータを設定
+//
+//! @param Key   パラメータ名
+//! @param Param パラメータ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetBlendspaceParam(const FName& Key, const FVector& Param){
+	
+	if(SNUtility::IsServer(GetWorld())){
+		// ブレンドスペースのパラメータを設定
+		IntervalBlendspaceParam(Key, Param);
+		// 各クライアントに通知
+		SetBlendspaceParam_OnMulticast(Key, Param);
+	} else {
+		// サーバーに通知
+		SetBlendspaceParam_OnServer(Key, Param);
+	}
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ブレンドスペースのパラメータを設定(サーバーで実行)
+//
+//! @param Key   パラメータ名
+//! @param Param パラメータ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetBlendspaceParam_OnServer_Implementation(const FName& Key, const FVector& Param){
+	SetBlendspaceParam(Key, Param);
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ブレンドスペースのパラメータを設定(各クライアントで実行)
+//
+//! @param Key   パラメータ名
+//! @param Param パラメータ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::SetBlendspaceParam_OnMulticast_Implementation(const FName& Key, const FVector& Param){
+	IntervalBlendspaceParam(Key, Param);
+}
+
+//----------------------------------------------------------------------//
+//
+//! @brief ブレンドスペースのパラメータを設定
+//
+//! @param Key   パラメータ名
+//! @param Param パラメータ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::IntervalBlendspaceParam(const FName& Key, const FVector& Param){
+	
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+	
+	if(AnimInstance != nullptr){
+		AnimInstance->SetBlendspaceParam(Key, Param);
 	}
 }
 
@@ -275,120 +344,244 @@ bool ASNCharacterBase::IsPreState(const FName& State, ECharacterStateType Type) 
 	return (FullBodyPreStateName == State) ? true : false;
 }
 
-UAnimInstance* ASNCharacterBase::GetAnimInstance()
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションインスタンスを取得
+//
+//! @retval アニメーションインスタンスへのポインタ
+//
+//----------------------------------------------------------------------//
+UAnimInstance* ASNCharacterBase::GetAnimInstance(){
+	
+	UAnimInstance* Result(nullptr);
+	
 	USkeletalMeshComponent* SkeletalMeshComponent(GetMesh());
-
-	if(SkeletalMeshComponent != nullptr)
-	{
-		return SkeletalMeshComponent->GetAnimInstance();
+	
+	if(SkeletalMeshComponent != nullptr){
+		Result = SkeletalMeshComponent->GetAnimInstance();
 	}
-
-	return nullptr;
+	
+	return Result;
 }
 
-USNLocomotionComponent* ASNCharacterBase::GetLocomotionComponent()
-{
+//----------------------------------------------------------------------//
+//
+//! @brief ロコモーションコンポーネントを取得
+//
+//! @retval ロコモーションコンポーネントへのポインタ
+//
+//----------------------------------------------------------------------//
+USNLocomotionComponent* ASNCharacterBase::GetLocomotionComponent(){
 	return Cast<USNLocomotionComponent>(GetComponentByClass(USNLocomotionComponent::StaticClass()));
 }
 
-void ASNCharacterBase::PlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
-{
-	if(SNUtility::IsServer(GetWorld()))
-	{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションシーケンスを再生
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param Slot      再生するスロット名
+//! @param PlayRate  再生レート
+//! @param BlendIn   ブレンドインの補間時間
+//! @param BlendOut  ブレンドアウトの補間時間
+//! @param StartTime 開始フレーム
+//! @param bLoop     ループ再生をするかどうかのフラグ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop){
+	// 自分がサーバーかチェック
+	if(SNUtility::IsServer(GetWorld())){
+		// アニメーションシーケンスを再生
 		InternalPlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
-
+		// 各クライアントに通知
 		PlaySequence_OnMulticast(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
-	} else
-	{
+	} else {
+		// サーバーに通知
 		PlaySequence_OnServer(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
 	}
 }
 
-void ASNCharacterBase::PlaySequence_OnServer_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションシーケンスを再生(サーバーで実行)
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param Slot      再生するスロット名
+//! @param PlayRate  再生レート
+//! @param BlendIn   ブレンドインの補間時間
+//! @param BlendOut  ブレンドアウトの補間時間
+//! @param StartTime 開始フレーム
+//! @param bLoop     ループ再生をするかどうかのフラグ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlaySequence_OnServer_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop){
 	PlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
 }
 
-void ASNCharacterBase::PlaySequence_OnMulticast_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションシーケンスを再生(各クライアントで実行)
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param Slot      再生するスロット名
+//! @param PlayRate  再生レート
+//! @param BlendIn   ブレンドインの補間時間
+//! @param BlendOut  ブレンドアウトの補間時間
+//! @param StartTime 開始フレーム
+//! @param bLoop     ループ再生をするかどうかのフラグ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlaySequence_OnMulticast_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop){
+	// アニメーションシーケンスを再生
 	InternalPlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
 }
-void ASNCharacterBase::InternalPlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
-{
-	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
 
-	if(AnimInstance != nullptr)
-	{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションシーケンスを再生
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param Slot      再生するスロット名
+//! @param PlayRate  再生レート
+//! @param BlendIn   ブレンドインの補間時間
+//! @param BlendOut  ブレンドアウトの補間時間
+//! @param StartTime 開始フレーム
+//! @param bLoop     ループ再生をするかどうかのフラグ
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::InternalPlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop){
+	
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+	
+	if(AnimInstance != nullptr){
 		AnimInstance->PlayAnimationSequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
 	}
 }
 
-void ASNCharacterBase::PlayMontage(const FName& Name, float PlayRate, float StartTime)
-{
-	if(SNUtility::IsServer(GetWorld()))
-	{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションモンタージュを再生
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param PlayRate  再生レート
+//! @param StartTime 開始フレーム
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlayMontage(const FName& Name, float PlayRate, float StartTime){
+	// 自分がサーバーかチェック
+	if(SNUtility::IsServer(GetWorld())){
+		// モンタージュを再生
 		InternalPlayMontage(Name, PlayRate, StartTime);
-
+		// 各クライアントに通知
 		PlayMontage_OnMulticast(Name, PlayRate, StartTime);
-	} else
-	{
+	} else {
+		// サーバーに通知
 		PlayMontage_OnServer(Name, PlayRate, StartTime);
 	}
 }
 
-void ASNCharacterBase::PlayMontage_OnServer_Implementation(const FName& Name, float PlayRate, float StartTime)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションモンタージュを再生(サーバーで実行)
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param PlayRate  再生レート
+//! @param StartTime 開始フレーム
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlayMontage_OnServer_Implementation(const FName& Name, float PlayRate, float StartTime){
 	PlayMontage(Name, PlayRate, StartTime);	
 }
 
-void ASNCharacterBase::PlayMontage_OnMulticast_Implementation(const FName& Name, float PlayRate, float StartTime)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションモンタージュを再生(各クライアントで実行)
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param PlayRate  再生レート
+//! @param StartTime 開始フレーム
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::PlayMontage_OnMulticast_Implementation(const FName& Name, float PlayRate, float StartTime){
 	InternalPlayMontage(Name, PlayRate, StartTime);
 }
 
-void ASNCharacterBase::InternalPlayMontage(const FName& Name, float PlayRate, float StartTime)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief アニメーションモンタージュを再生
+//
+//! @param Name      アニメーションのキー(DTに登録されている)の名前
+//! @param PlayRate  再生レート
+//! @param StartTime 開始フレーム
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::InternalPlayMontage(const FName& Name, float PlayRate, float StartTime){
+	
 	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
-
-	if(AnimInstance != nullptr)
-	{
+	
+	if(AnimInstance != nullptr){
 		AnimInstance->PlayAnimationMontage(Name, PlayRate, StartTime);
 	}
 }
 
-void ASNCharacterBase::JumpMontageSection(const FName& Name, const FName& Section)
-{
-	if(SNUtility::IsServer(GetWorld()))
-	{
+//----------------------------------------------------------------------//
+//
+//! @brief モンタージュのセクションへのジャンプ
+//
+//! @param Name    アニメーションのキー(DTに登録されている)の名前
+//! @param Section セクション名
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::JumpMontageSection(const FName& Name, const FName& Section){
+	// 自分がサーバーかチェック
+	if(SNUtility::IsServer(GetWorld())){
+		// 指定セクションへジャンプ
 		InternalJumpMontageSection(Name, Section);
-
+		// 各クライアントに通知
 		JumpMontageSection_OnMulticast(Name, Section);
-	} else
-	{
+	} else {
+		// サーバーへ通知
 		JumpMontageSection_OnServer(Name, Section);
 	}
 }
 
-void ASNCharacterBase::JumpMontageSection_OnServer_Implementation(const FName& Name, const FName& Section)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief モンタージュのセクションへのジャンプ(サーバー側で実行)
+//
+//! @param Name    アニメーションのキー(DTに登録されている)の名前
+//! @param Section セクション名
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::JumpMontageSection_OnServer_Implementation(const FName& Name, const FName& Section){
 	JumpMontageSection(Name, Section);
 }
 
-void ASNCharacterBase::JumpMontageSection_OnMulticast_Implementation(const FName& Name, const FName& Section)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief モンタージュのセクションへのジャンプ(各クライアント側で実行)
+//
+//! @param Name    アニメーションのキー(DTに登録されている)の名前
+//! @param Section セクション名
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::JumpMontageSection_OnMulticast_Implementation(const FName& Name, const FName& Section){
 	InternalJumpMontageSection(Name, Section);
 }
 
-void ASNCharacterBase::InternalJumpMontageSection(const FName& Name, const FName& Section)
-{
+//----------------------------------------------------------------------//
+//
+//! @brief モンタージュのセクションへのジャンプ
+//
+//! @param Name    アニメーションのキー(DTに登録されている)の名前
+//! @param Section セクション名
+//
+//----------------------------------------------------------------------//
+void ASNCharacterBase::InternalJumpMontageSection(const FName& Name, const FName& Section){
+	
 	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
-
-	if(AnimInstance != nullptr)
-	{
+	
+	if(AnimInstance != nullptr){
 		AnimInstance->JumpAnimationMontageSection(Name, Section);
 	}
 }
-
-
-

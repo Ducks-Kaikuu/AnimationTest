@@ -81,10 +81,12 @@ public:
 	void PlayMontage(const FName& Name, float PlayRate=1.0f, float StartTime=0.0f);
 	//! @}
 	
+	//! @{@name モンタージュのセクションへのジャンプ
 	UFUNCTION(BlueprintCallable, Category="SN|Animation")
 	void JumpMontageSection(const FName& Name, const FName& Section);
+	//! @}
 	
-	//! @{@name ブレンドスペースの設定
+	//! @{@name ブレンドスペースのパラメータを設定
 	UFUNCTION(BlueprintCallable, Category="SN|Animation")
 	void SetBlendspaceParam(const FName& Key, const FVector& param);
 	//! @}
@@ -106,7 +108,7 @@ private:
 	void InternalSetCurrentState(const FName& Name, ECharacterStateType Type);
 	//! @}
 	
-	//! @{@name ブレンドスペースの設定
+	//! @{@name ブレンドスペースのパラメータを設定
 	UFUNCTION(Server, Reliable)
 	void SetBlendspaceParam_OnServer(const FName& Key, const FVector& Param);
 	
@@ -135,14 +137,16 @@ private:
 	
 	void InternalPlayMontage(const FName& Name, float PlayRate, float StartTime);
 	//! @}
-
+	
+	//! @{@name モンタージュのセクションへのジャンプ
 	UFUNCTION(Server, Reliable)
 	void JumpMontageSection_OnServer(const FName& Name, const FName& Section);
-
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void JumpMontageSection_OnMulticast(const FName& Name, const FName& Section);
-
+	
 	void InternalJumpMontageSection(const FName& Name, const FName& Section);
+	//! @}
 	
 	//!< 上半身の現在のステート
 	UPROPERTY()
