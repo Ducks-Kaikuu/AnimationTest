@@ -115,7 +115,7 @@ void ASNCharacterBase::SetCurrentState_OnServer_Implementation(const FName& Name
 //
 //----------------------------------------------------------------------//
 bool ASNCharacterBase::SetCurrentState_OnServer_Validate(const FName& Name, ECharacterStateType Type){
-	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
+	return Type >= (ECharacterStateType)0 && Type < ECharacterStateType::Num;
 }
 
 
@@ -143,7 +143,7 @@ void ASNCharacterBase::SetCurrentState_OnMulticast_Implementation(const FName& N
 //
 //----------------------------------------------------------------------//
 bool ASNCharacterBase::SetCurrentState_OnMulticast_Validate(const FName& Name, ECharacterStateType Type){
-	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
+	return Type >= (ECharacterStateType)0 && Type < ECharacterStateType::Num;
 }
 
 //----------------------------------------------------------------------//
