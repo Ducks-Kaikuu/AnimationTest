@@ -25,9 +25,7 @@ void UATActionMove::ExecAction(const FInputActionValue& InputActionValue)
 		{
 			Player->SetCurrentState(FName(TEXT("LandMove")), ECharacterStateType::Lower);
 			
-			USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(Player->GetAnimInstance()));
-			
-			AnimInstance->SetBlendspaceParam(FName(TEXT("LandMove")), FVector(InputActionValue[0] * 100.0f, InputActionValue[1] * 100.0f, 0.0f));
+			Player->SetBlendspaceParam(FName(TEXT("LandMove")), FVector(InputActionValue[0] * 100.0f, InputActionValue[1] * 100.0f, 0.0f));
 
 			if(USNLocomotionComponent* LocomotionComponent = Player->GetLocomotionComponent()){
 

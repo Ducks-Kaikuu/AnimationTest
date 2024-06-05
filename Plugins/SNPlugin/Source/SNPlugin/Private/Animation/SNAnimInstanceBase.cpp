@@ -3,6 +3,7 @@
 
 #include "Animation/SNAnimInstanceBase.h"
 
+#include "SNDef.h"
 #include "Character/Base/SNCharacterBase.h"
 #include "Data/SNRelevantDataAsset.h"
 
@@ -15,6 +16,8 @@ void USNAnimInstanceBase::NativeInitializeAnimation()
 		AnimationAssetList->GetAssetLoadFinishedEvent().AddUObject(this, &USNAnimInstanceBase::FinishLoadedAnimationAsset);
 
 		AnimationAssetList->Setup();
+
+		SNPLUGIN_LOG(TEXT("Animation Native Initialize is Done."));
 	}
 }
 

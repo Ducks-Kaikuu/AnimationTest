@@ -114,6 +114,38 @@ bool ASNCharacterBase::SetCurrentState_OnMulticast_Validate(const FName& Name, E
 	return Type > (ECharacterStateType)0 && Type < ECharacterStateType::Num;
 }
 
+void ASNCharacterBase::SetBlendspaceParam(const FName& Key, const FVector& Param)
+{
+	if(SNUtility::IsServer(GetWorld()))
+	{
+		IntervalBlendspaceParam(Key, Param);
+
+		SetBlendspaceParam_OnMulticast(Key, Param);
+	} else
+	{
+		SetBlendspaceParam_OnServer(Key, Param);
+	}
+}
+
+void ASNCharacterBase::SetBlendspaceParam_OnServer_Implementation(const FName& Key, const FVector& Param)
+{
+	SetBlendspaceParam(Key, Param);
+}
+
+void ASNCharacterBase::SetBlendspaceParam_OnMulticast_Implementation(const FName& Key, const FVector& Param)
+{
+	IntervalBlendspaceParam(Key, Param);
+}
+
+void ASNCharacterBase::IntervalBlendspaceParam(const FName& Key, const FVector& Param)
+{
+	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
+	
+	if(AnimInstance != nullptr)
+	{
+		AnimInstance->SetBlendspaceParam(Key, Param);	
+	}
+}
 
 void ASNCharacterBase::InternalSetCurrentState(const FName& Name, ECharacterStateType Type){
 	
@@ -262,6 +294,28 @@ USNLocomotionComponent* ASNCharacterBase::GetLocomotionComponent()
 
 void ASNCharacterBase::PlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
 {
+	if(SNUtility::IsServer(GetWorld()))
+	{
+		InternalPlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+
+		PlaySequence_OnMulticast(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+	} else
+	{
+		PlaySequence_OnServer(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+	}
+}
+
+void ASNCharacterBase::PlaySequence_OnServer_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
+{
+	PlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+}
+
+void ASNCharacterBase::PlaySequence_OnMulticast_Implementation(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
+{
+	InternalPlaySequence(Name, Slot, PlayRate, BlendIn, BlendOut, StartTime, bLoop);
+}
+void ASNCharacterBase::InternalPlaySequence(const FName& Name, const FName& Slot, float PlayRate, float BlendIn, float BlendOut, float StartTime, bool bLoop)
+{
 	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
 
 	if(AnimInstance != nullptr)
@@ -271,6 +325,29 @@ void ASNCharacterBase::PlaySequence(const FName& Name, const FName& Slot, float 
 }
 
 void ASNCharacterBase::PlayMontage(const FName& Name, float PlayRate, float StartTime)
+{
+	if(SNUtility::IsServer(GetWorld()))
+	{
+		InternalPlayMontage(Name, PlayRate, StartTime);
+
+		PlayMontage_OnMulticast(Name, PlayRate, StartTime);
+	} else
+	{
+		PlayMontage_OnServer(Name, PlayRate, StartTime);
+	}
+}
+
+void ASNCharacterBase::PlayMontage_OnServer_Implementation(const FName& Name, float PlayRate, float StartTime)
+{
+	PlayMontage(Name, PlayRate, StartTime);	
+}
+
+void ASNCharacterBase::PlayMontage_OnMulticast_Implementation(const FName& Name, float PlayRate, float StartTime)
+{
+	InternalPlayMontage(Name, PlayRate, StartTime);
+}
+
+void ASNCharacterBase::InternalPlayMontage(const FName& Name, float PlayRate, float StartTime)
 {
 	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
 
@@ -282,6 +359,29 @@ void ASNCharacterBase::PlayMontage(const FName& Name, float PlayRate, float Star
 
 void ASNCharacterBase::JumpMontageSection(const FName& Name, const FName& Section)
 {
+	if(SNUtility::IsServer(GetWorld()))
+	{
+		InternalJumpMontageSection(Name, Section);
+
+		JumpMontageSection_OnMulticast(Name, Section);
+	} else
+	{
+		JumpMontageSection_OnServer(Name, Section);
+	}
+}
+
+void ASNCharacterBase::JumpMontageSection_OnServer_Implementation(const FName& Name, const FName& Section)
+{
+	JumpMontageSection(Name, Section);
+}
+
+void ASNCharacterBase::JumpMontageSection_OnMulticast_Implementation(const FName& Name, const FName& Section)
+{
+	InternalJumpMontageSection(Name, Section);
+}
+
+void ASNCharacterBase::InternalJumpMontageSection(const FName& Name, const FName& Section)
+{
 	USNAnimInstanceBase* AnimInstance(Cast<USNAnimInstanceBase>(GetAnimInstance()));
 
 	if(AnimInstance != nullptr)
@@ -289,5 +389,6 @@ void ASNCharacterBase::JumpMontageSection(const FName& Name, const FName& Sectio
 		AnimInstance->JumpAnimationMontageSection(Name, Section);
 	}
 }
+
 
 
