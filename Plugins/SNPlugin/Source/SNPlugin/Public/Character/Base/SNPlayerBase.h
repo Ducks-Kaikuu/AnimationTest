@@ -6,6 +6,8 @@
 #include "Character/Base/SNCharacterBase.h"
 #include "SNPlayerBase.generated.h"
 
+//!@{@defgroup キャラクター制御
+//!@{
 /**
  * 
  */
@@ -18,3 +20,5 @@ protected:
 	
 	virtual void NotifyRestarted() override;
 };
+//! @}
+//! @}

@@ -4,7 +4,7 @@
 	"VersionName": "1.0",
 	"FriendlyName": "SNPlugin",
 	"Description": "Original Plugin",
-	"Category": "Other",
+	"Category": "SatoshiNishimura",
 	"CreatedBy": "Nishimura",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -54,6 +54,6 @@
 		{
 			"Name": "OnlineSubsystemUtils",
 			"Enabled": true
-		},
+		}
 	]
 }
